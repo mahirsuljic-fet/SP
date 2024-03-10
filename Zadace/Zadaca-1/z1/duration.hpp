@@ -1,0 +1,56 @@
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <istream>
+#include <ostream>
+#include <string>
+
+using Second = int8_t;
+using Minute = int8_t;
+using Hour = uint32_t;
+
+class Duration
+{
+  public:
+    Duration() : hours_(0), minutes_(0), seconds_(0) { }
+    Duration(Second seconds);
+    Duration(Hour hours, Minute minutes, Second seconds);
+    Duration(const std::string& input);
+
+    size_t get_s() const { return seconds_; }
+    size_t get_m() const { return minutes_; }
+    size_t get_h() const { return hours_; }
+    Duration& set_s(Second seconds);
+    Duration& set_m(Minute minutes);
+    Duration& set_h(Hour hours);
+
+    explicit operator bool() const { return hours_ && minutes_ && seconds_; }
+    bool operator!() const { return !(hours_ && minutes_ && seconds_); }
+    bool operator==(const Duration& other) const;
+    bool operator!=(const Duration& other) const;
+    bool operator>=(const Duration& other) const;
+    bool operator<=(const Duration& other) const;
+    bool operator>(const Duration& other) const;
+    bool operator<(const Duration& other) const;
+    Duration operator+(const Duration& other);
+    Duration operator-(const Duration& other);
+    Duration operator+(const Duration& other) const;
+    Duration operator-(const Duration& other) const;
+    Duration& operator+=(const Duration& other);
+    Duration& operator-=(const Duration& other);
+    Duration operator*(int n);
+    Duration operator/(int n);
+    Duration operator*(int n) const;
+    Duration operator/(int n) const;
+    Duration& operator*=(int n);
+    Duration& operator/=(int n);
+
+  private:
+    Hour hours_ = 0;
+    Minute minutes_ = 0;
+    Second seconds_ = 0;
+};
+
+std::ostream& operator<<(std::ostream& output, const Duration& duration);
+std::istream& operator>>(std::istream& input, Duration& duration);
