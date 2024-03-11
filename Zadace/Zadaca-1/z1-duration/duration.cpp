@@ -6,15 +6,17 @@
 #include <stdexcept>
 #include <string>
 
-Duration::Duration(Second seconds)
+Duration::Duration(size_t total_seconds)
 {
-  hours_ = seconds / 3600;
-  seconds %= 3600;
+  total_seconds_ = total_seconds;
 
-  minutes_ = seconds / 60;
-  seconds %= 60;
+  hours_ = total_seconds / 3600;
+  total_seconds %= 3600;
 
-  seconds_ = seconds;
+  minutes_ = total_seconds / 60;
+  total_seconds %= 60;
+
+  seconds_ = total_seconds;
 }
 
 Duration::Duration(Hour hours, Minute minutes, Second seconds)
@@ -26,26 +28,37 @@ Duration::Duration(Hour hours, Minute minutes, Second seconds)
 
   if (seconds >= 60) throw std::out_of_range("Unos sekundi nije validan (0 <= seconds < 60).");
   seconds_ = seconds;
+
+  set_total_seconds_();
 }
 
 Duration::Duration(const std::string& input)
 {
-  if (input.size() != 8 || input[2] != ':' || input[5] != ':')
-    throw std::invalid_argument("Format nije validan.");
+  int i = 0;
+  for (char c : input)
+    if (c == ':') ++i;
 
-  std::string hours { input[0], input[1] };
-  std::string minutes { input[3], input[4] };
-  std::string seconds { input[6], input[7] };
+  if (i != 2) throw std::invalid_argument("Format nije validan.");
 
-  hours_ = std::stoi(hours);
-  minutes_ = std::stoi(minutes);
-  seconds_ = std::stoi(seconds);
+  std::string hours, minutes, seconds;
+
+  i = 0;
+  while (input[i] != ':') hours += input[i++];
+  ++i;
+  while (input[i] != ':') minutes += input[i++];
+  ++i;
+  while (input[i] != '\0') seconds += input[i++];
+
+  set_h(std::stoi(hours));
+  set_m(std::stoi(minutes));
+  set_s(std::stoi(seconds));
 }
 
 Duration& Duration::set_s(Second seconds)
 {
   if (seconds >= 60) throw std::out_of_range("Unos sekundi nije validan (0 <= seconds < 60).");
   seconds_ = seconds;
+  total_seconds_ += seconds;
 
   return *this;
 }
@@ -54,6 +67,7 @@ Duration& Duration::set_m(Minute minutes)
 {
   if (minutes >= 60) throw std::out_of_range("Unos minuta nije validan (0 <= minutes < 60).");
   minutes_ = minutes;
+  total_seconds_ += minutes * 60;
 
   return *this;
 }
@@ -61,66 +75,44 @@ Duration& Duration::set_m(Minute minutes)
 Duration& Duration::set_h(Hour hours)
 {
   hours_ = hours;
+  total_seconds_ += hours * 3600;
 
   return *this;
 }
 
+void Duration::set_total_seconds_()
+{
+  total_seconds_ = hours_ * 3600 + minutes_ * 60 + seconds_;
+}
+
 bool Duration::operator==(const Duration& other) const
 {
-  return this->hours_ == other.hours_ && this->minutes_ == other.minutes_ && this->seconds_ == other.seconds_;
+  return this->total_seconds_ == other.total_seconds_;
 }
 
 bool Duration::operator!=(const Duration& other) const
 {
-  return this->hours_ != other.hours_ || this->minutes_ != other.minutes_ || this->seconds_ != other.seconds_;
+  return this->total_seconds_ != other.total_seconds_;
 }
 
 bool Duration::operator>(const Duration& other) const
 {
-  if (this->hours_ > other.hours_) return true;
-  if (this->hours_ < other.hours_) return false;
-
-  if (this->minutes_ > other.minutes_) return true;
-  if (this->minutes_ < other.minutes_) return false;
-
-  if (this->seconds_ > other.seconds_) return true;
-  return false;
+  return this->total_seconds_ > other.total_seconds_;
 }
 
 bool Duration::operator<(const Duration& other) const
 {
-  if (this->hours_ < other.hours_) return true;
-  if (this->hours_ > other.hours_) return false;
-
-  if (this->minutes_ < other.minutes_) return true;
-  if (this->minutes_ > other.minutes_) return false;
-
-  if (this->seconds_ < other.seconds_) return true;
-  return false;
+  return this->total_seconds_ < other.total_seconds_;
 }
 
 bool Duration::operator>=(const Duration& other) const
 {
-  if (this->hours_ > other.hours_) return true;
-  if (this->hours_ < other.hours_) return false;
-
-  if (this->minutes_ > other.minutes_) return true;
-  if (this->minutes_ < other.minutes_) return false;
-
-  if (this->seconds_ >= other.seconds_) return true;
-  return false;
+  return this->total_seconds_ >= other.total_seconds_;
 }
 
 bool Duration::operator<=(const Duration& other) const
 {
-  if (this->hours_ < other.hours_) return true;
-  if (this->hours_ > other.hours_) return false;
-
-  if (this->minutes_ < other.minutes_) return true;
-  if (this->minutes_ > other.minutes_) return false;
-
-  if (this->seconds_ <= other.seconds_) return true;
-  return false;
+  return this->total_seconds_ <= other.total_seconds_;
 }
 
 Duration Duration::operator+(const Duration& other)
@@ -225,82 +217,28 @@ Duration Duration::operator*(int n)
 {
   if (n < 0) throw std::out_of_range("Nije dozvoljeno mnozenje objekta tipa Duration sa negativnim brojevima.");
 
-  Second seconds = this->seconds_ * n;
-  Minute minutes = this->minutes_ * n;
-  Hour hours = this->hours_ * n;
-
-  if (seconds >= 60)
-  {
-    minutes += seconds / 60;
-    seconds %= 60;
-  }
-
-  if (minutes >= 60)
-  {
-    hours += minutes / 60;
-    minutes %= 60;
-  }
-
-  return Duration(hours, minutes, seconds);
+  return Duration(total_seconds_ * n);
 }
 
 Duration Duration::operator/(int n)
 {
   if (n <= 0) throw std::out_of_range("Nije dozvoljeno dijeljenje objekta tipa Duration sa nulom i negativnim brojevima.");
 
-  Second seconds = this->seconds_ / n;
-  Minute minutes = this->minutes_ / n;
-  Hour hours = this->hours_ / n;
-
-  double remainder_seconds = (double)this->seconds_ / n - seconds;
-  double remainder_minutes = (double)this->minutes_ / n - minutes;
-  double remainder_hours = (double)this->hours_ / n - hours;
-
-  minutes += remainder_hours * 60;
-  seconds += remainder_hours * 3600 + remainder_minutes * 60 + std::round(remainder_seconds);
-
-  return Duration(hours, minutes, seconds);
+  return Duration(total_seconds_ / n);
 }
 
 Duration Duration::operator*(int n) const
 {
   if (n < 0) throw std::out_of_range("Nije dozvoljeno mnozenje objekta tipa Duration sa negativnim brojevima.");
 
-  Second seconds = this->seconds_ * n;
-  Minute minutes = this->minutes_ * n;
-  Hour hours = this->hours_ * n;
-
-  if (seconds >= 60)
-  {
-    minutes += seconds / 60;
-    seconds %= 60;
-  }
-
-  if (minutes >= 60)
-  {
-    hours += minutes / 60;
-    minutes %= 60;
-  }
-
-  return Duration(hours, minutes, seconds);
+  return Duration(total_seconds_ * n);
 }
 
 Duration Duration::operator/(int n) const
 {
   if (n <= 0) throw std::out_of_range("Nije dozvoljeno dijeljenje objekta tipa Duration sa nulom i negativnim brojevima.");
 
-  Second seconds = this->seconds_ / n;
-  Minute minutes = this->minutes_ / n;
-  Hour hours = this->hours_ / n;
-
-  double remainder_seconds = (double)this->seconds_ / n - seconds;
-  double remainder_minutes = (double)this->minutes_ / n - minutes;
-  double remainder_hours = (double)this->hours_ / n - hours;
-
-  minutes += remainder_hours * 60;
-  seconds += remainder_hours * 3600 + remainder_minutes * 60 + std::round(remainder_seconds);
-
-  return Duration(hours, minutes, seconds);
+  return Duration(total_seconds_ / n);
 }
 
 Duration& Duration::operator*=(int n)
@@ -316,11 +254,11 @@ Duration& Duration::operator/=(int n)
 std::ostream& operator<<(std::ostream& output, const Duration& duration)
 {
   if (duration.get_h() < 10) output << "0";
-  output << duration.get_h() << ":";
+  output << unsigned(duration.get_h()) << ":";
   if (duration.get_m() < 10) output << "0";
-  output << duration.get_m() << ":";
+  output << unsigned(duration.get_m()) << ":";
   if (duration.get_s() < 10) output << "0";
-  output << duration.get_s();
+  output << unsigned(duration.get_s());
 
   return output;
 }

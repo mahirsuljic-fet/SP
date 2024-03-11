@@ -14,13 +14,13 @@ class Duration
 {
   public:
     Duration() : hours_(0), minutes_(0), seconds_(0) { }
-    Duration(Second seconds);
+    Duration(size_t total_seconds);
     Duration(Hour hours, Minute minutes, Second seconds);
     Duration(const std::string& input);
 
-    size_t get_s() const { return seconds_; }
-    size_t get_m() const { return minutes_; }
-    size_t get_h() const { return hours_; }
+    Second get_s() const { return seconds_; }
+    Minute get_m() const { return minutes_; }
+    Hour get_h() const { return hours_; }
     Duration& set_s(Second seconds);
     Duration& set_m(Minute minutes);
     Duration& set_h(Hour hours);
@@ -50,6 +50,8 @@ class Duration
     Hour hours_ = 0;
     Minute minutes_ = 0;
     Second seconds_ = 0;
+    size_t total_seconds_ = 0;
+    void set_total_seconds_();
 };
 
 std::ostream& operator<<(std::ostream& output, const Duration& duration);

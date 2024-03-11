@@ -1,11 +1,12 @@
-#include <iostream>
 #include "duration.hpp"
+#include <iostream>
 
-int main() {
-  // ovdje možete samostalno testirati neke funkcionalnosti. 
-  // Napomena: main.cpp se ne pregleda, sva implementacija 
-  // ide u duration .cpp i .hpp fileove.
-  
-  Duraiton d1{1, 2, 3};
-  std::cout << (d1 + Duration{3, 2, 1}) << std::endl;
+int main()
+{
+  Duration d;
+  std::cin >> d;
+  std::cout << (d * 2) << std::endl;
+  std::cout << (d / 2) << std::endl;
+  std::cout << ((d * 2) + d) << std::endl;
+  std::cout << ((d * 2) - d) << std::endl;
 }
