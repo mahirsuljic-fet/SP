@@ -8,7 +8,7 @@
 
 using Second = int8_t;
 using Minute = int8_t;
-using Hour = uint32_t;
+using Hour = int32_t;
 
 class Duration
 {

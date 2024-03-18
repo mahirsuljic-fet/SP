@@ -21,14 +21,9 @@ Duration::Duration(size_t total_seconds)
 
 Duration::Duration(Hour hours, Minute minutes, Second seconds)
 {
-  hours_ = hours;
-
-  if (minutes >= 60) throw std::out_of_range("Unos minuta nije validan (0 <= minutes < 60).");
-  minutes_ = minutes;
-
-  if (seconds >= 60) throw std::out_of_range("Unos sekundi nije validan (0 <= seconds < 60).");
-  seconds_ = seconds;
-
+  set_h(hours);
+  set_m(minutes);
+  set_s(seconds);
   set_total_seconds_();
 }
 
@@ -56,26 +51,30 @@ Duration::Duration(const std::string& input)
 
 Duration& Duration::set_s(Second seconds)
 {
-  if (seconds >= 60) throw std::out_of_range("Unos sekundi nije validan (0 <= seconds < 60).");
+  if (seconds >= 60 || seconds < 0) throw std::out_of_range("Unos sekundi nije validan (0 <= seconds < 60).");
   seconds_ = seconds;
-  total_seconds_ += seconds;
+
+  set_total_seconds_();
 
   return *this;
 }
 
 Duration& Duration::set_m(Minute minutes)
 {
-  if (minutes >= 60) throw std::out_of_range("Unos minuta nije validan (0 <= minutes < 60).");
+  if (minutes >= 60 || minutes < 0) throw std::out_of_range("Unos minuta nije validan (0 <= minutes < 60).");
   minutes_ = minutes;
-  total_seconds_ += minutes * 60;
+
+  set_total_seconds_();
 
   return *this;
 }
 
 Duration& Duration::set_h(Hour hours)
 {
+  if (hours < 0) throw std::out_of_range("Unos sati nije validan (hours >= 0).");
   hours_ = hours;
-  total_seconds_ += hours * 3600;
+
+  set_total_seconds_();
 
   return *this;
 }
@@ -117,90 +116,26 @@ bool Duration::operator<=(const Duration& other) const
 
 Duration Duration::operator+(const Duration& other)
 {
-  Second seconds = this->seconds_ + other.seconds_;
-  Minute minutes = this->minutes_ + other.minutes_;
-  Hour hours = this->hours_ + other.hours_;
-
-  if (seconds >= 60)
-  {
-    seconds %= 60;
-    ++minutes;
-  }
-
-  if (minutes >= 60)
-  {
-    minutes %= 60;
-    ++hours;
-  }
-
-  return Duration(hours, minutes, seconds);
+  return Duration(this->total_seconds_ + other.total_seconds_);
 }
 
 Duration Duration::operator-(const Duration& other)
 {
   if (other > *this) throw std::out_of_range("Nije dozvoljeno oduzimanje veceg objekta Duration od manjeg.");
 
-  Second seconds = this->seconds_ - other.seconds_;
-  Minute minutes = this->minutes_ - other.minutes_;
-  Hour hours = this->hours_ - other.hours_;
-
-  if (seconds < 0)
-  {
-    seconds += 60;
-    --minutes;
-  }
-
-  if (minutes < 0)
-  {
-    minutes += 60;
-    --hours;
-  }
-
-  return Duration(hours, minutes, seconds);
+  return Duration(this->total_seconds_ - other.total_seconds_);
 }
 
 Duration Duration::operator+(const Duration& other) const
 {
-  Second seconds = this->seconds_ + other.seconds_;
-  Minute minutes = this->minutes_ + other.minutes_;
-  Hour hours = this->hours_ + other.hours_;
-
-  if (seconds >= 60)
-  {
-    seconds %= 60;
-    ++minutes;
-  }
-
-  if (minutes >= 60)
-  {
-    minutes %= 60;
-    ++hours;
-  }
-
-  return Duration(hours, minutes, seconds);
+  return Duration(this->total_seconds_ + other.total_seconds_);
 }
 
 Duration Duration::operator-(const Duration& other) const
 {
   if (other > *this) throw std::out_of_range("Nije dozvoljeno oduzimanje veceg objekta Duration od manjeg.");
 
-  Second seconds = this->seconds_ - other.seconds_;
-  Minute minutes = this->minutes_ - other.minutes_;
-  Hour hours = this->hours_ - other.hours_;
-
-  if (seconds < 0)
-  {
-    seconds += 60;
-    --minutes;
-  }
-
-  if (minutes < 0)
-  {
-    minutes += 60;
-    --hours;
-  }
-
-  return Duration(hours, minutes, seconds);
+  return Duration(this->total_seconds_ - other.total_seconds_);
 }
 
 Duration& Duration::operator+=(const Duration& other)
@@ -254,7 +189,7 @@ Duration& Duration::operator/=(int n)
 std::ostream& operator<<(std::ostream& output, const Duration& duration)
 {
   if (duration.get_h() < 10) output << "0";
-  output << unsigned(duration.get_h()) << ":";
+  output << duration.get_h() << ":";
   if (duration.get_m() < 10) output << "0";
   output << unsigned(duration.get_m()) << ":";
   if (duration.get_s() < 10) output << "0";
