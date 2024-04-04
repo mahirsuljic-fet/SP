@@ -226,7 +226,7 @@ class Array<T>::Iterator
     using value_type = T;
     using pointer = T*;
     using reference = T&;
-    using difference_type = size_t;
+    using difference_type = long;
 
     Iterator(T* p) : ptr_ { p } { }
 
