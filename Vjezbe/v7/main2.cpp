@@ -1,6 +1,5 @@
 #include "list.hpp"
-
-// NIJE SVE IMPLEMENTIRANO, DIO IMPLEMENTIRAN U v7
+#include <iostream>
 
 int main()
 {
@@ -23,7 +22,5 @@ int main()
   lista.erase(++lista.begin());
   lista.erase(lista.begin());
   for (auto iter = lista.begin(); iter != lista.end(); ++iter)
-  {
     std::cout << *iter << std::endl;
-  }
 }
