@@ -184,7 +184,7 @@ DoubleLinkedList<T>& DoubleLinkedList<T>::push_front(const T& value)
     head_ = new_node;
   }
   else
-    *(head_ = tail_ = new_node);
+    head_ = tail_ = new_node;
 
   ++size_;
 
@@ -203,7 +203,7 @@ DoubleLinkedList<T>& DoubleLinkedList<T>::push_back(T&& value)
     tail_ = new_node;
   }
   else
-    *(tail_ = head_ = new_node);
+    tail_ = head_ = new_node;
 
   ++size_;
 
@@ -222,7 +222,7 @@ DoubleLinkedList<T>& DoubleLinkedList<T>::push_front(T&& value)
     head_ = new_node;
   }
   else
-    *(head_ = tail_ = new_node);
+    head_ = tail_ = new_node;
 
   ++size_;
 
