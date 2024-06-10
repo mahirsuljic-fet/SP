@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TripPlanner.hpp"
+
 class Dialogue_Handler
 {
   public:

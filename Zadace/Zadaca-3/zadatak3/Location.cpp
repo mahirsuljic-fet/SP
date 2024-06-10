@@ -1,5 +1,4 @@
 #include "Location.hpp"
-#include <algorithm>
 
 Location::Location(const std::string& name, double latitude, double longitude)
   : name_ { name }, latitude_ { latitude }, longitude_ { longitude } { }

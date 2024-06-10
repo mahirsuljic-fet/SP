@@ -1,10 +1,8 @@
 #include "Dialogue_Handler.hpp"
-#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <locale>
 #include <stdexcept>
 #include <string>
 
