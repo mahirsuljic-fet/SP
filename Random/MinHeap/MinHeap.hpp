@@ -68,8 +68,11 @@ template <typename T>
 template <typename F>
 MinHeap<T>& MinHeap<T>::operator=(MinHeap<F>&& other)
 {
-  this->clear();
-  this->tree_ = std::forward<decltype(other.tree_)>(other.tree_);
+  if (this != &other)
+  {
+    this->clear();
+    this->tree_ = std::forward<decltype(other.tree_)>(other.tree_);
+  }
   return *this;
 }
 
